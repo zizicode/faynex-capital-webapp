@@ -1,11 +1,12 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { loginAdmin } from "@/services/api/auth.user";
+import useUserDataStore from "@/zustand/isAuthenticate";
 
 const AdminLogin = () => {
   const { toast } = useToast();
@@ -15,28 +16,31 @@ const AdminLogin = () => {
     password: "",
   });
 
-  const handleSubmit = (e) => {
+  const { setUserData, isAuthenticate } = useUserDataStore();
+
+  useEffect(() => {
+    if(isAuthenticate){
+      navigate("/admin");
+    }
+  },[])
+  
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Admin credentials validation
-    if (
-      credentials.username === "AdminFaynex07" &&
-      credentials.password === "@Nalucy25"
-    ) {
-      // Store admin session
-      localStorage.setItem("adminAuthenticated", "true");
-      localStorage.setItem("adminUser", JSON.stringify({
-        username: credentials.username,
-        role: "admin",
-        lastLogin: new Date().toISOString()
-      }));
+    const response = await loginAdmin({
+      email: credentials.username,
+      password: credentials.password,
+    });
 
+
+    if (response.success) {
+      setUserData(response.data);
       toast({
         title: "¡Bienvenido administrador!",
         description: "Has iniciado sesión correctamente",
       });
 
-      // Navigate using navigate instead of window.location
       navigate("/admin");
     } else {
       toast({
@@ -67,6 +71,8 @@ const AdminLogin = () => {
                 <Input
                   placeholder="Usuario Administrativo"
                   value={credentials.username}
+                  id="username"
+                  name="username"
                   onChange={(e) =>
                     setCredentials({ ...credentials, username: e.target.value })
                   }
@@ -79,6 +85,8 @@ const AdminLogin = () => {
                   type="password"
                   placeholder="Contraseña Administrativa"
                   value={credentials.password}
+                  id="password"
+                  name="password"
                   onChange={(e) =>
                     setCredentials({ ...credentials, password: e.target.value })
                   }

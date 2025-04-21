@@ -8,25 +8,28 @@ import CountdownTimer from "@/components/CountdownTimer";
 import RecentActivity from "@/components/RecentActivity";
 import { Copy, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import useUserDataStore from "../zustand/isAuthenticate";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  
+const { currentUser } = useUserDataStore();
+  const dataUser = currentUser || "{}";
   const users = JSON.parse(localStorage.getItem("users") || "[]");
 
   // Calculate real statistics based on referrals and active plans
   const stats = {
-    activeReferrals: currentUser.activeReferrals || 0,
+    activeReferrals: dataUser.activeReferrals || 0,
     newReferrals: 0, // This would need to be calculated based on recent signups
-    totalEarnings: currentUser.totalEarnings?.toFixed(2) || "0.00",
-    monthlyEarnings: currentUser.monthlyEarnings?.toFixed(2) || "0.00",
-    level: currentUser.level || "Bronce",
-    nextLevelProgress: currentUser.nextLevelProgress || 0,
+    totalEarnings: dataUser.totalEarnings?.toFixed(2) || "0.00",
+    monthlyEarnings: dataUser.monthlyEarnings?.toFixed(2) || "0.00",
+    level: dataUser.level || "Bronce",
+    nextLevelProgress: dataUser.nextLevelProgress || 0,
   };
 
   const handleCopyReferralLink = () => {
     navigator.clipboard.writeText(
-      `${window.location.origin}?ref=${currentUser.referralCode}`
+      `${window.location.origin}?ref=${dataUser.referral_code}`
     );
     toast({
       title: "¡Enlace copiado!",
@@ -35,7 +38,7 @@ const Dashboard = () => {
   };
 
   // Get actual available balance from user data
-  const availableBalance = currentUser.availableBalance || 0;
+  const availableBalance = dataUser.availableBalance || 0;
 
   return (
     <div className="space-y-8">
@@ -43,18 +46,18 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={currentUser.avatar} />
+            <AvatarImage src={dataUser.avatar} />
             <AvatarFallback>
-              {currentUser.name?.charAt(0).toUpperCase()}
+              {dataUser.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-2xl font-bold">
-              Bienvenido, {currentUser.name}
+              Bienvenido, {dataUser.name}
             </h1>
             <p className="text-gray-400">
               Miembro desde{" "}
-              {new Date(currentUser.joinDate).toLocaleDateString()}
+              {new Date(dataUser.join_date).toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -101,7 +104,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="flex items-center space-x-2">
               <code className="rounded bg-gray-800 px-4 py-2 flex-1">
-                {`${window.location.origin}?ref=${currentUser.referralCode}`}
+                {`${window.location.origin}?ref=${dataUser.referral_code}`}
               </code>
               <button
                 onClick={handleCopyReferralLink}
@@ -120,7 +123,7 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <RecentActivity currentUser={currentUser} />
+        <RecentActivity currentUser={dataUser} />
       </motion.div>
     </div>
   );
