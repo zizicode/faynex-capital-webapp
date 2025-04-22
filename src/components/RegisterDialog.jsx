@@ -26,8 +26,6 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
   });
   const { toast } = useToast();
 
-  const params = new URLSearchParams(window.location.search);
-  const referral = params.get("ref");
   useEffect(() => {
     if(referral != null){
       setIsLogin(false);
@@ -38,39 +36,6 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
     e.preventDefault();
   
     try {
-      if (!formData.email || !formData.password) {
-        toast({
-          title: "Error",
-          description: "Por favor completa los campos requeridos",
-          variant: "destructive",
-        });
-        return;
-      }
-  
-      if (!isLogin) {
-        if (
-          !formData.name ||
-          !formData.username ||
-          !formData.confirmPassword
-        ) {
-          toast({
-            title: "Error",
-            description: "Por favor completa todos los campos",
-            variant: "destructive",
-          });
-          return;
-        }
-  
-        if (formData.password !== formData.confirmPassword) {
-          toast({
-            title: "Error",
-            description: "Las contraseñas no coinciden",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-  
       let response;
       const payload = {
         ...formData,
@@ -101,11 +66,6 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
       onClose();
     } catch (error) {
       console.error("Error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Ocurrió un error durante la operación",
-        variant: "destructive",
-      });
     }
   };
 

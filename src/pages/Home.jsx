@@ -17,16 +17,12 @@ const Home = () => {
     const handleRegister = async (credentials) => {
         if(credentials.success){
             setUserData(credentials.data)
-        }else{
-            console.log(credentials.message)
         }
       };
       
       const handleLogin = async (credentials) => {
         if(credentials.success){
             setUserData(credentials.data)
-        }else{
-            console.log(credentials.message)
         }
       };
 
