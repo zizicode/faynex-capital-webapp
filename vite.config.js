@@ -135,7 +135,7 @@ const addTransformIndexHtml = {
 				},
 				{
 					tag: 'script',
-					attrs: {type: 'module'},
+					attrs: { type: 'module' },
 					children: configHorizonsConsoleErrroHandler,
 					injectTo: 'head',
 				},
@@ -152,6 +152,9 @@ const addTransformIndexHtml = {
 
 export default defineConfig({
 	plugins: [react(), addTransformIndexHtml],
+	build: {
+		outDir: 'dist'
+	},
 	server: {
 		cors: true,
 		headers: {
@@ -160,7 +163,7 @@ export default defineConfig({
 		allowedHosts: true,
 	},
 	resolve: {
-		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],
+		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json',],
 		alias: {
 			'@': path.resolve(__dirname, './src'),
 		},
