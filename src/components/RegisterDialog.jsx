@@ -8,14 +8,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
-import { registerUser, loginUser } from "../services/api/auth.user";
+import { registerUser, loginUser } from "@/services/api/auth.user";
+import { searchUser } from "@/services/api/post.user";
 
-const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
+const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin, handleToast }) => {
   const [searchParams] = useSearchParams();
-  const referralCode = searchParams.get("ref");
+  const [referralCode, setreferralCode] = useState(null)
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -24,10 +24,19 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
     password: "",
     confirmPassword: "",
   });
-  const { toast } = useToast();
 
   useEffect(() => {
-    if(referral != null){
+    const handleSearchUser = async () => {
+      const data = await searchUser({username:searchParams.get("ref")});
+      if(!data.success && data.data === null){
+        setreferralCode(null)
+      }else{
+        setreferralCode(data.data.name)
+      }
+    }
+
+    if(searchParams.get("ref") != null){
+      handleSearchUser()
       setIsLogin(false);
     }
   },[])
@@ -37,13 +46,13 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
   
     try {
       let response;
-      const payload = {
-        ...formData,
-        referralCode: referralCode || undefined,
-      };
+      const payload = isLogin 
+      ? { email: formData.email, password: formData.password, referralCode: referralCode } 
+      : {...formData, referralCode: referralCode || null} ;
   
       if (isLogin) {
         response = await loginUser(payload);
+        handleToast(response);
       } else {
         response = await registerUser(payload);
       }
@@ -51,19 +60,18 @@ const RegisterDialog = ({ isOpen, onClose, onRegister, onLogin }) => {
       if (response?.error) {
         throw new Error(response.error);
       }
+
+      if(!response && response.message !== undefined){
+        handleToast(response)
+      }
   
-      toast({
-        title: isLogin ? "Inicio de sesión exitoso" : "¡Registro exitoso!",
-        description: `Bienvenido${isLogin ? " de nuevo" : ""} a Faynex Capital`,
-      });
-  
-      if (isLogin) {
+      if (isLogin && response) {
         onLogin?.(response);
       } else {
         onRegister?.(response);
       }
   
-      onClose();
+      // onClose();
     } catch (error) {
       console.error("Error:", error);
     }

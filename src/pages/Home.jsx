@@ -1,40 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
+import { toast } from 'react-toastify';
 import { Button } from "@/components/ui/button";
 import RegisterDialog from "@/components/RegisterDialog";
 import useUserDataStore from '../zustand/isAuthenticate';
 
 const Home = () => {
     const [showRegister, setShowRegister] = useState(false);
-    const handleGetStarted = () => {
-        setShowRegister(true);
-    };
+    const handleGetStarted = () => setShowRegister(true);
 
-    const { 
-        setUserData
-      } = useUserDataStore();
+    const { setUserData } = useUserDataStore();
 
     const handleRegister = async (credentials) => {
-        if(credentials.success){
+        if (credentials.success) {
             setUserData(credentials.data)
         }
-      };
-      
-      const handleLogin = async (credentials) => {
-        if(credentials.success){
+    };
+
+    const handleLogin = async (credentials) => {
+        if (credentials.success) {
             setUserData(credentials.data)
         }
-      };
+    };
 
-      const params = new URLSearchParams(window.location.search);
-      const referralCode = params.get("ref");
+    function handleToast(response) {
+        console.log(response)
+        if(response.success){
+            toast.success(`${response.message}`, {
+                title: "Register",
+                position: "bottom-right",
+                autoClose: 3000,
+                hideProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",})
+        }else{
+            toast.error(`${response.message}`, {
+                title:"Credenciales",
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",})
+        }
+    }
 
-      useEffect(() => {
-        if(referralCode != null){
+    const params = new URLSearchParams(window.location.search);
+    const referralCode = params.get("ref");
+
+    useEffect(() => {
+        if (referralCode != null) {
             setShowRegister(true);
         }
-      },[])
-      
+    }, [])
+
     return (
         <>
             <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
@@ -212,6 +236,7 @@ const Home = () => {
                 onClose={() => setShowRegister(false)}
                 onRegister={handleRegister}
                 onLogin={handleLogin}
+                handleToast={handleToast}
             />
         </>
     )
