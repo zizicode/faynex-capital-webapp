@@ -1,54 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
-import { toast } from 'react-toastify';
 import { Button } from "@/components/ui/button";
-import RegisterDialog from "@/components/RegisterDialog";
-import useUserDataStore from '../zustand/isAuthenticate';
+import AuthDialog from '@/components/common/AuthDialog';
 
 const Home = () => {
     const [showRegister, setShowRegister] = useState(false);
     const handleGetStarted = () => setShowRegister(true);
-
-    const { setUserData } = useUserDataStore();
-
-    const handleRegister = async (credentials) => {
-        if (credentials.success) {
-            setUserData(credentials.data)
-        }
-    };
-
-    const handleLogin = async (credentials) => {
-        if (credentials.success) {
-            setUserData(credentials.data)
-        }
-    };
-
-    function handleToast(response) {
-        console.log(response)
-        if(response.success){
-            toast.success(`${response.message}`, {
-                title: "Register",
-                position: "bottom-right",
-                autoClose: 3000,
-                hideProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",})
-        }else{
-            toast.error(`${response.message}`, {
-                title:"Credenciales",
-                position: "bottom-right",
-                autoClose: 1000,
-                hideProgressBar: true,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "light",})
-        }
-    }
 
     const params = new URLSearchParams(window.location.search);
     const referralCode = params.get("ref");
@@ -231,12 +188,9 @@ const Home = () => {
                     </section>
                 </main>
             </div>
-            <RegisterDialog
+            <AuthDialog
                 isOpen={showRegister}
                 onClose={() => setShowRegister(false)}
-                onRegister={handleRegister}
-                onLogin={handleLogin}
-                handleToast={handleToast}
             />
         </>
     )

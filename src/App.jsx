@@ -16,10 +16,11 @@ import Affiliates from "@/pages/Affiliates";
 import AdminLogin from "@/modules/admin/pages/AdminLogin";
 import AdminDashboard from "@/modules/admin/pages/AdminDashboard";
 import Home from "@/pages/Home";
-
+import useVerifyTokenOnRouteChange from "@/hooks/useVerifyTokenOnRouteChange";
 import useUserDataStore from "./zustand/isAuthenticate";
 
 function App() {
+  useVerifyTokenOnRouteChange()
   const { toast } = useToast();
   const navigate = useNavigate();
 

@@ -1,6 +1,6 @@
 export const registerUser = async (formData) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/register`, {
+      const response = await fetch(`http://localhost:3000/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export const registerUser = async (formData) => {
 
 export const loginUser = async (formData) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/login`, {
+      const response = await fetch(`http://localhost:3000/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
