@@ -1,6 +1,9 @@
+import api from './api.json';
+const isDev = import.meta.env.MODE === 'development' ? api.dev : api.prod;
+
 export const registerUser = async (formData) => {
     try {
-      const response = await fetch(`https://api.faynexcapital.com/auth/register`, {
+      const response = await fetch(`${isDev}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +31,7 @@ export const registerUser = async (formData) => {
 
 export const loginUser = async (formData) => {
     try {
-      const response = await fetch(`https://api.faynexcapital.com/auth/login`, {
+      const response = await fetch(`${isDev}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +59,7 @@ export const loginUser = async (formData) => {
 
 export const loginAdmin = async (formData) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/admin`, {
+      const response = await fetch(`${isDev}/auth/admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

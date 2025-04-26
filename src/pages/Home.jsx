@@ -7,14 +7,16 @@ const Home = () => {
     const [showRegister, setShowRegister] = useState(false);
     const handleGetStarted = () => setShowRegister(true);
 
-    const params = new URLSearchParams(window.location.search);
-    const referralCode = params.get("ref");
+    const [referralBy, setReferralBy] = useState(null);
 
     useEffect(() => {
-        if (referralCode != null) {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        if (ref) {
+            setReferralBy(ref);
             setShowRegister(true);
         }
-    }, [])
+    }, []);
 
     return (
         <>
@@ -191,6 +193,7 @@ const Home = () => {
             <AuthDialog
                 isOpen={showRegister}
                 onClose={() => setShowRegister(false)}
+                referralBy={referralBy}
             />
         </>
     )

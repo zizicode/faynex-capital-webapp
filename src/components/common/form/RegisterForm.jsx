@@ -5,12 +5,17 @@ import { registerUser } from "@/services/api/auth.user";
 import useNayStore from "@/zustand/NayStore";
 import useUserDataStore from "@/zustand/isAuthenticate";
 import useTokenStore from '@/zustand/isTokenStore';
+import { getReferralByUsername } from '@/services/api/post.user';
 
 const RegisterForm = ({ toggleForm }) => {
+  const params = new URLSearchParams(window.location.search);
+  const referralBy = String(params.get("ref")) || null;
+
   const [codeError, setCodeError] = useState("");
-  const {setNayData} = useNayStore();
-  const {setUserData} = useUserDataStore();
-  const {setTokenData} = useTokenStore();
+  const [referralDate, setReferralDate] = useState(null)
+  const { setNayData } = useNayStore();
+  const { setUserData } = useUserDataStore();
+  const { setTokenData } = useTokenStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,6 +25,19 @@ const RegisterForm = ({ toggleForm }) => {
     confirmPassword: ""
   });
 
+  const handleVeriyReferralBy = async (username) => {
+    const ref = { username: username }
+    const response = await getReferralByUsername(ref);
+
+    if (!response.success) {
+      setReferralDate(null);
+      return
+    }
+
+    setReferralDate(response.data);
+    return
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -28,7 +46,12 @@ const RegisterForm = ({ toggleForm }) => {
       return;
     }
 
-    const result = await registerUser(formData);
+    let finalFormData = { ...formData };
+    if (referralDate?.id != null) {
+      finalFormData = { ...formData, referredBy: referralDate };
+    }
+
+    const result = await registerUser(finalFormData);
     if (result.success === false || !result.data) {
       if (result.codeError) {
         setCodeError(result.codeError);
@@ -44,10 +67,16 @@ const RegisterForm = ({ toggleForm }) => {
   };
 
   useEffect(() => {
-    if(codeError){
-        setCodeError('');
+    if (codeError) {
+      setCodeError('');
     }
-  },[formData])
+  }, [formData])
+
+  useEffect(() => {
+    if (referralBy) {
+      handleVeriyReferralBy(referralBy);
+    }
+  }, [])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -88,6 +117,15 @@ const RegisterForm = ({ toggleForm }) => {
         className={codeError === "AR03" ? "border-red-500 focus-visible:ring-red-500" : ""}
         required
       />
+      {referralDate?.username ?
+        <div className="p-3 bg-blue-900/50 rounded-lg">
+          <p className="text-sm text-blue-200">
+            Tu patrocinador es: <strong>{referralDate?.username}</strong>
+          </p>
+        </div>
+        : 
+        null
+      }
       <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
         Registrarse
       </Button>

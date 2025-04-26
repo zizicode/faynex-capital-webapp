@@ -8,7 +8,6 @@ import { ToastContainer } from "react-toastify";
 import Nay from "./components/common/Nay"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
     <BrowserRouter>
       <App />
       <Nay /> {/* 👈 Aquí va Nay */}
@@ -24,5 +23,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         theme="dark"
       />
     </BrowserRouter>
-  </React.StrictMode>
 );

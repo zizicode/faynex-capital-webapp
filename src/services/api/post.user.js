@@ -1,6 +1,9 @@
-export const searchUser = async (payload) => {
+import api from './api.json';
+const isDev = import.meta.env.MODE === 'development' ? api.dev : api.prod;
+
+export const getReferralByUsername = async (payload) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/search/user`, {
+      const response = await fetch(`${isDev}/get/referral`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
