@@ -48,12 +48,12 @@ const { currentUser } = useUserDataStore();
           <Avatar className="h-16 w-16">
             <AvatarImage src={dataUser.avatar} />
             <AvatarFallback>
-              {dataUser.name?.charAt(0).toUpperCase()}
+              {dataUser.full_name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-2xl font-bold">
-              Bienvenido, {dataUser.name}
+              Bienvenido, {dataUser.full_name}
             </h1>
             <p className="text-gray-400">
               Miembro desde{" "}

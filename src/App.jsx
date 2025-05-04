@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -13,23 +13,18 @@ import Wallet from "@/pages/Wallet";
 import Plans from "@/pages/Plans";
 import Support from "@/pages/Support";
 import Affiliates from "@/pages/Affiliates";
-import AdminLogin from "@/modules/admin/pages/AdminLogin";
-import AdminDashboard from "@/modules/admin/pages/AdminDashboard";
 import Home from "@/pages/Home";
+
 import useVerifyTokenOnRouteChange from "@/hooks/useVerifyTokenOnRouteChange";
 import useUserDataStore from "./zustand/isAuthenticate";
 
 function App() {
-  useVerifyTokenOnRouteChange()
+  useVerifyTokenOnRouteChange();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { 
-    currentUser,
-    isAuthenticate, 
-    isAdminAuthenticate, 
-    logout 
-  } = useUserDataStore();
+  const { isAuthenticate, logout } = useUserDataStore();
 
   const handleLogout = () => {
     logout();
@@ -37,31 +32,15 @@ function App() {
     navigate("/");
   };
 
-  const handleAdminLogout = () => {
-    logout();
-    toast({ description: "Sesión de administrador cerrada." });
-    navigate("/admin/login");
-  };
+  // Redirigir si se intenta acceder a /admin
+  if (location.pathname.startsWith("/admin")) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <>
       <Routes>
-        {/* Rutas Admin */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        {isAdminAuthenticate  ? (
-          <Route
-            path="/admin/*"
-            element={<AdminDashboard onLogout={handleAdminLogout} />}
-          />
-        ) : (
-          <Route
-            path="/admin/*"
-            element={<Navigate to="/admin/login" replace />}
-          />
-        )}
-
-        {/* Rutas Usuario */}
-        {isAuthenticate && !isAdminAuthenticate ? (
+        {isAuthenticate ? (
           <Route path="/" element={<DashboardLayout onLogout={handleLogout} />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -73,9 +52,16 @@ function App() {
             <Route path="wallet" element={<Wallet />} />
             <Route path="affiliates" element={<Affiliates />} />
             <Route path="support" element={<Support />} />
+            {/* Si estando autenticado entran a una ruta inexistente, redirigir a dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         ) : (
-          <Route path="*" element={<Home />} />
+          <>
+            {/* Si no está autenticado, Home es la página principal */}
+            <Route path="/" element={<Home />} />
+            {/* Si no está autenticado y entra a una ruta inexistente, llevarlo al Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
         )}
       </Routes>
 

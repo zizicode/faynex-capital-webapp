@@ -3,13 +3,13 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { loginAdmin } from "@/services/api/auth.user";
 import useUserDataStore from "@/zustand/isAuthenticate";
+import useNayStore from "@/zustand/NayStore"
 
 const AdminLogin = () => {
-  const { toast } = useToast();
+  const {setNayData} = useNayStore();
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     username: "",
@@ -28,26 +28,28 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await loginAdmin({
+    const result = await loginAdmin({
       email: credentials.username,
       password: credentials.password,
     });
 
 
-    if (response.success) {
-      setUserData(response.data);
-      toast({
-        title: "¡Bienvenido administrador!",
-        description: "Has iniciado sesión correctamente",
-      });
+    if (result.success) {
+      setUserData(result.data);
+      setNayData(result.message, "success", { type: "success", autoClose: 2000 }, 2500);
+      // toast({
+      //   title: "¡Bienvenido administrador!",
+      //   description: "Has iniciado sesión correctamente",
+      // });
 
       navigate("/admin");
     } else {
-      toast({
-        title: "Error de acceso",
-        description: "Credenciales administrativas incorrectas",
-        variant: "destructive",
-      });
+      setNayData(result.message, "error", { type: "error", autoClose: 2000 }, 2500);
+      // toast({
+      //   title: "Error de acceso",
+      //   description: "Credenciales administrativas incorrectas",
+      //   variant: "destructive",
+      // });
     }
   };
 

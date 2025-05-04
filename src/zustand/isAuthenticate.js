@@ -4,7 +4,6 @@ const InituserData = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 const useUserDataStore = create((set) => ({
   isAuthenticate: !!InituserData,
-  isAdminAuthenticate: InituserData && String(InituserData.rol) === 'Admin',
   currentUser: InituserData,
 
   setUserData: (data) => {
@@ -12,7 +11,6 @@ const useUserDataStore = create((set) => ({
     set({
       currentUser: data,
       isAuthenticate: data ? true : false,
-      isAdminAuthenticate: String(data?.rol) === 'Admin',
     });
   },
 
@@ -22,7 +20,6 @@ const useUserDataStore = create((set) => ({
     set({
       currentUser: null,
       isAuthenticate: false,
-      isAdminAuthenticate: false,
     });
     deleteTokenData()
   },
