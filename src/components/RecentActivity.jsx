@@ -26,12 +26,12 @@ const RecentActivity = ({ currentUser }) => {
 
     // Plan activations
     ...users
-      .filter(user => user.referrer?.id === currentUser.id && user.activePlan)
+      .filter(user => user.referrer?.id === currentUser.id && user.active_plan)
       .map(user => ({
         type: "plan",
         date: user.planEndDate, // Using planEndDate as activation date
         user: user.username,
-        details: `Activó ${user.activePlan}`
+        details: `Activó ${user.active_plan}`
       })),
 
     // Completed withdrawals

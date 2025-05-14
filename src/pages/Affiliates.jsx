@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,35 +7,45 @@ import { Button } from "@/components/ui/button";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { getReferralsTree } from "@/services/api/referrals/getReferralsTree";
 
 const Affiliates = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [affiliates, setAffiliates] = useState([]);
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
-
   useEffect(() => {
-    // Get all direct referrals
-    const directReferrals = users.filter(user => user.referredBy === currentUser.username);
-    
-    // Get second level referrals
-    const secondLevel = users.filter(user => 
-      directReferrals.some(dr => dr.username === user.referredBy)
-    );
+    const fetchAffiliates = async () => {
+      if (!currentUser?.id) return;
 
-    // Get third level referrals
-    const thirdLevel = users.filter(user =>
-      secondLevel.some(sl => sl.username === user.referredBy)
-    );
+      try {
+        const res = await getReferralsTree(currentUser.id);
+        if (!res.success || !res.data) {
+          setAffiliates([]);
+          return;
+        }
 
-    const allAffiliates = [
-      ...directReferrals.map(user => ({ ...user, level: 1 })),
-      ...secondLevel.map(user => ({ ...user, level: 2 })),
-      ...thirdLevel.map(user => ({ ...user, level: 3 }))
-    ];
+        const { level1 = {}, level2 = {}, level3 = {} } = res.data;
 
-    setAffiliates(allAffiliates);
-  }, [currentUser.username]);
+        const formatLevel = (levelObj, levelNum) =>
+          Object.values(levelObj)
+            .flat()
+            .map((user) => ({ ...user, level: levelNum }));
+
+        const allAffiliates = [
+          ...formatLevel(level1, 1),
+          ...formatLevel(level2, 2),
+          ...formatLevel(level3, 3),
+        ];
+
+        setAffiliates(allAffiliates);
+      } catch (error) {
+        console.error("Error loading referral tree:", error);
+        setAffiliates([]);
+      }
+    };
+
+    fetchAffiliates();
+  }, [currentUser?.id]);
 
   const filteredAffiliates = affiliates.filter(affiliate =>
     affiliate.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,6 +93,9 @@ const Affiliates = () => {
       <Card>
         <CardHeader>
           <CardTitle>Mis Afiliados</CardTitle>
+          <p className="text-sm text-gray-400">
+            Mostrando {filteredAffiliates.filter(a => a.level === 1).length} afiliados de nivel 1
+          </p>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="relative">
@@ -96,44 +108,53 @@ const Affiliates = () => {
             />
           </div>
 
-          <div className="max-h-[400px] overflow-hidden">
-            {filteredAffiliates.length > 0 ? (
-              <Slider {...sliderSettings}>
-                {filteredAffiliates.map(affiliate => (
-                  <div key={affiliate.id} className="p-2">
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="bg-gray-800 p-4 rounded-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">{affiliate.username}</h3>
-                          <p className="text-sm text-gray-400">{affiliate.email}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              affiliate.level === 1 ? 'bg-blue-500/20 text-blue-300' :
-                              affiliate.level === 2 ? 'bg-purple-500/20 text-purple-300' :
-                              'bg-green-500/20 text-green-300'
-                            }`}>
-                              Nivel {affiliate.level}
-                            </span>
-                            {affiliate.activePlan && (
-                              <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
-                                {affiliate.activePlan}
+          <div className="max-h-[400px] overflow-y-auto pr-2 custom-scroll">
+            {filteredAffiliates.filter(a => a.level === 1).length > 0 ? (
+              filteredAffiliates
+                .filter(a => a.level === 1)
+                .map(affiliate => {
+                  const level2 = filteredAffiliates.filter(b => b.level === 2 && b.referrer_id === affiliate.id);
+                  return (
+                    <div key={affiliate.id} className="p-2">
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="bg-gray-800 p-4 rounded-lg"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold">{affiliate.username}</h3>
+                            <p className="text-sm text-gray-400">{affiliate.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-300">
+                                Nivel 1
                               </span>
+                              {affiliate.active_plan && (
+                                <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
+                                  Plan {affiliate.active_plan}
+                                </span>
+                              )}
+                            </div>
+                            {level2.length > 0 && (
+                              <div className="mt-2 text-sm text-gray-400">
+                                <span className="font-medium text-purple-300">Referidos de {affiliate.full_name}:</span>{' '}
+                                {level2.map(user => user.username).join(', ')}
+                              </div>
                             )}
                           </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-400">
+                              Registrado: {new Date(affiliate.created_at || 0).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              Última actividad: {new Date(affiliate.updated_at || 0).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-400">Registrado: {new Date(affiliate.joinDate).toLocaleDateString()}</p>
-                          <p className="text-sm text-gray-400">Última actividad: {new Date(affiliate.lastActiveDate).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </div>
-                ))}
-              </Slider>
+                      </motion.div>
+                    </div>
+                  );
+                })
             ) : (
               <p className="text-center text-gray-400">No se encontraron afiliados</p>
             )}

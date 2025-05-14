@@ -1,12 +1,27 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getPlanById } from '@/services/api/plans/getPlansById';
 
 const ReferralStats = ({ stats }) => {
   const navigate = useNavigate();
+  const [plan, setPlan] = useState(null);
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+
+  useEffect(() => {
+    const getPlan = async () => {
+      if(currentUser.id_plan){
+        const x = await getPlanById(currentUser.id_plan)
+        if(x){
+          setPlan(x.data.name)
+        }
+      }
+    }
+
+    getPlan()
+  },[])
 
   const getPlanBadge = (plan) => {
     switch (plan) {
@@ -24,7 +39,7 @@ const ReferralStats = ({ stats }) => {
   };
 
   const handlePlanClick = () => {
-    if (!currentUser.activePlan) {
+    if (!currentUser.id_plan) {
       navigate("/plans");
     }
   };
@@ -39,7 +54,7 @@ const ReferralStats = ({ stats }) => {
         <CardContent>
           <div className="text-2xl font-bold">{stats.activeReferrals}</div>
           <p className="text-xs text-gray-400">
-            +{stats.newReferrals} este mes
+            este mes
           </p>
         </CardContent>
       </Card>
@@ -58,7 +73,7 @@ const ReferralStats = ({ stats }) => {
       </Card>
 
       <Card 
-        className={`bg-gradient-to-br from-cyan-900 to-cyan-800 ${!currentUser.activePlan ? 'cursor-pointer' : ''}`}
+        className={`bg-gradient-to-br from-cyan-900 to-cyan-800 ${!currentUser.active_plan ? 'cursor-pointer' : ''}`}
         onClick={handlePlanClick}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -66,10 +81,10 @@ const ReferralStats = ({ stats }) => {
           <Award className="h-4 w-4 text-cyan-400" />
         </CardHeader>
         <CardContent>
-          {currentUser.activePlan ? (
+          {currentUser.active_plan ? (
             <>
-              <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm ${getPlanBadge(currentUser.activePlan)}`}>
-                {currentUser.activePlan}
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm ${getPlanBadge(plan)}`}>
+                {currentUser.active_plan}
               </div>
             </>
           ) : (

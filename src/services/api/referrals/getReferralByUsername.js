@@ -1,14 +1,13 @@
-import api from './api.json';
+import api from '../api.json';
 const isDev = import.meta.env.MODE === 'development' ? api.dev : api.prod;
 
-export const getReferralByUsername = async (payload) => {
+export const getReferralByUsername = async (username) => {
     try {
-      const response = await fetch(`${isDev}/get/referral`, {
-        method: 'POST',
+      const response = await fetch(`${isDev}/referrals/${username}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        }
       });
   
       // Verificar si la respuesta es exitosa (status 2xx)

@@ -28,7 +28,6 @@ const DashboardLayout = ({ onLogout }) => {
   const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 1024);
   const [showMenuButton, setShowMenuButton] = useState(true);
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-  const hasActivePlan = currentUser.activePlan && new Date(currentUser.planEndDate) > new Date();
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", restricted: false },
@@ -63,7 +62,7 @@ const DashboardLayout = ({ onLogout }) => {
   }, [location.pathname]);
 
   const handleRestrictedAccess = (restricted) => {
-    if (restricted && (!currentUser.activePlan || currentUser.restrictedAccess)) {
+    if (restricted && (!currentUser.id_plan || !currentUser.active_plan === 'active')) {
       toast({
         title: "Acceso restringido",
         description: "Necesitas un plan activo para acceder a esta función",
@@ -119,7 +118,7 @@ const DashboardLayout = ({ onLogout }) => {
                 {menuItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
-                  const isRestricted = item.restricted && (!currentUser.activePlan || currentUser.restrictedAccess);
+                  const isRestricted = item.restricted && (!currentUser.id_plan || !currentUser.active_plan === 'active');
 
                   return (
                     <Button

@@ -5,7 +5,7 @@ import { registerUser } from "@/services/api/auth.user";
 import useNayStore from "@/zustand/NayStore";
 import useUserDataStore from "@/zustand/isAuthenticate";
 import useTokenStore from '@/zustand/isTokenStore';
-import { getReferralByUsername } from '@/services/api/post.user';
+import { getReferralByUsername } from '@/services/api/referrals/getReferralByUsername';
 
 const RegisterForm = ({ toggleForm }) => {
   const params = new URLSearchParams(window.location.search);
@@ -27,7 +27,7 @@ const RegisterForm = ({ toggleForm }) => {
 
   const handleVeriyReferralBy = async (username) => {
     const ref = { username: username }
-    const response = await getReferralByUsername(ref);
+    const response = await getReferralByUsername(ref.username);
 
     if (!response.success) {
       setReferralDate(null);
@@ -48,7 +48,7 @@ const RegisterForm = ({ toggleForm }) => {
 
     let finalFormData = { ...formData };
     if (referralDate?.id != null) {
-      finalFormData = { ...formData, referredBy: referralDate };
+      finalFormData = { ...formData, referred_by: referralDate.id };
     }
 
     const result = await registerUser(finalFormData);

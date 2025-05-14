@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,20 +8,28 @@ import RecentActivity from "@/components/RecentActivity";
 import { Copy, Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import useUserDataStore from "../zustand/isAuthenticate";
+import {getCommissionsByUserId} from '@/services/api/commissions/getCommissionsByUserId';
+import { getPaymentsByUserId } from '@/services/api/payments/getAllPaymentsByUserId';
 
 const Dashboard = () => {
   const { toast } = useToast();
-  
-const { currentUser } = useUserDataStore();
+  const [commissions, setCommissions] = useState([]);
+  const [payments, setPayments] = useState([]);
+
+  const { currentUser, syncUserDataFromServer } = useUserDataStore();
   const dataUser = currentUser || "{}";
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
+  const countActiveUsers = Object.values(currentUser?.referrals || {})
+  const activeReferrals = countActiveUsers.filter(user => user.account_status === 'active').length;
+  const totalAmount = commissions.reduce((acc, item) => acc + item.amount, 0);
+  const totalPaymentsAmount = payments.reduce((sum, item) => sum + (item?.original_amount || 0), 0);
+  const currencyBalance = (totalAmount - totalPaymentsAmount) || 0;
 
   // Calculate real statistics based on referrals and active plans
   const stats = {
-    activeReferrals: dataUser.activeReferrals || 0,
+    activeReferrals: activeReferrals,
     newReferrals: 0, // This would need to be calculated based on recent signups
-    totalEarnings: dataUser.totalEarnings?.toFixed(2) || "0.00",
-    monthlyEarnings: dataUser.monthlyEarnings?.toFixed(2) || "0.00",
+    totalEarnings: totalAmount?.toFixed(2) || "0.00",
+    monthlyEarnings: totalAmount?.toFixed(2) || "0.00",
     level: dataUser.level || "Bronce",
     nextLevelProgress: dataUser.nextLevelProgress || 0,
   };
@@ -37,8 +44,25 @@ const { currentUser } = useUserDataStore();
     });
   };
 
-  // Get actual available balance from user data
-  const availableBalance = dataUser.availableBalance || 0;
+
+  useEffect(() => {
+    syncUserDataFromServer();
+
+    currentUser?.id ? getPaymentsByUserId(currentUser.id).then(res => {
+      if (res.success) setPayments(res.data);
+    }) : null;
+
+    const getPlansByUser = async () => {
+      if(currentUser.id_plan){
+        const res = await getCommissionsByUserId(currentUser.id);
+        if(res.success && res.data){
+          setCommissions(res.data)
+        }
+      }
+    }
+
+    getPlansByUser();
+  },[currentUser])
 
   return (
     <div className="space-y-8">
@@ -57,7 +81,7 @@ const { currentUser } = useUserDataStore();
             </h1>
             <p className="text-gray-400">
               Miembro desde{" "}
-              {new Date(dataUser.join_date).toLocaleDateString()}
+              {new Date(dataUser.created_at).toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -80,7 +104,7 @@ const { currentUser } = useUserDataStore();
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">${availableBalance.toFixed(2)} USDT</div>
+            <div className="text-4xl font-bold">${currencyBalance.toFixed(2)} USDT</div>
             <p className="text-sm text-gray-400 mt-2">
               Retiro mínimo: $50 USDT
             </p>

@@ -1,47 +1,41 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPlanById } from '@/services/api/plans/getPlansById';
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
+import { useCountdown } from '@/hooks/useCountdown';
 
 const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0
-  });
-
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-  const endDate = currentUser.planEndDate;
-  const activePlan = currentUser.activePlan;
+  const [planEndTime, setPlanEndTime] = useState(0);
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      if (!endDate) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    const id_plan = currentUser?.id_plan;
+    const activePlan = currentUser?.active_plan === 'active';
 
-      const difference = new Date(endDate).getTime() - new Date().getTime();
-      
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        });
+    const getPlan = async () => {
+      if (id_plan && activePlan) {
+        try {
+          const res = await getPlanById(id_plan);
+          if (res?.success && res?.data?.plan_time_end) {
+            setPlanEndTime(new Date(res.data.plan_time_end).getTime());
+          } else {
+            setPlanEndTime(0);
+          }
+        } catch (err) {
+          setPlanEndTime(0);
+        }
       } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setPlanEndTime(0);
       }
     };
 
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
+    getPlan();
+  }, []);
 
-    return () => clearInterval(timer);
-  }, [endDate]);
+  const timeLeft = useCountdown(planEndTime);
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const activePlan = currentUser?.active_plan === 'active';
 
   return (
     <motion.div
