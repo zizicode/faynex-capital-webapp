@@ -147,7 +147,7 @@ const Dashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <RecentActivity currentUser={dataUser} />
+        <RecentActivity currentUser={dataUser ? dataUser : {}} />
       </motion.div>
     </div>
   );

@@ -84,7 +84,7 @@ const ReferralStats = ({ stats }) => {
           {currentUser.active_plan ? (
             <>
               <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm ${getPlanBadge(plan)}`}>
-                {currentUser.active_plan}
+                {plan ? plan : 'Sin plan activo'}
               </div>
             </>
           ) : (

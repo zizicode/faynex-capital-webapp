@@ -1,50 +1,28 @@
 
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUp, ArrowDown, UserPlus, Award, DollarSign } from "lucide-react";
+import {getActivitiesByUserId} from '@/services/api/activities/getAllActivities';
 import { Button } from "@/components/ui/button";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const RecentActivity = ({ currentUser }) => {
-  const users = JSON.parse(localStorage.getItem("users") || "[]");
-  const withdrawalRequests = JSON.parse(localStorage.getItem("withdrawalRequests") || "[]");
+  const [activity, setActivity] = useState({});
 
-  // Get all activities and sort by date
-  const activities = [
-    // Referral registrations
-    ...users
-      .filter(user => user.referrer?.id === currentUser.id)
-      .map(user => ({
-        type: "referral",
-        date: user.joinDate,
-        user: user.username,
-        details: "Nuevo referido registrado"
-      })),
+  useEffect( () => {
+    const handleFetchActivity = async () => {
+      if(currentUser?.id){
+        let res = await getActivitiesByUserId(currentUser?.id)
+        res.success ? setActivity(res.data) : null
+        return
+      }
+    }
 
-    // Plan activations
-    ...users
-      .filter(user => user.referrer?.id === currentUser.id && user.active_plan)
-      .map(user => ({
-        type: "plan",
-        date: user.planEndDate, // Using planEndDate as activation date
-        user: user.username,
-        details: `Activó ${user.active_plan}`
-      })),
-
-    // Completed withdrawals
-    ...withdrawalRequests
-      .filter(req => req.userId === currentUser.id && req.status === "completed")
-      .map(req => ({
-        type: "withdrawal",
-        date: req.completedDate,
-        amount: req.amount,
-        details: "Retiro procesado exitosamente"
-      }))
-  ]
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    handleFetchActivity();
+  },[])
 
   const sliderSettings = {
     dots: true,
@@ -91,10 +69,10 @@ const RecentActivity = ({ currentUser }) => {
         <CardTitle>Actividad Reciente</CardTitle>
       </CardHeader>
       <CardContent>
-        {activities.length > 0 ? (
+        {activity.length > 0 ? (
           <div className="max-h-[300px] overflow-hidden">
             <Slider {...sliderSettings}>
-              {activities.map((activity, index) => (
+              {activity.map((activity, index) => (
                 <div key={index} className="p-2">
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -108,15 +86,15 @@ const RecentActivity = ({ currentUser }) => {
                         <p className="font-medium">
                           {activity.type === "withdrawal"
                             ? `Retiro de $${activity.amount} USDT`
-                            : activity.details}
+                            : activity.description}
                         </p>
                         {activity.user && (
                           <p className="text-sm text-gray-400">
-                            Usuario: {activity.user}
+                            Usuario: {activity.user_id}
                           </p>
                         )}
                         <p className="text-xs text-gray-500">
-                          {new Date(activity.date).toLocaleString()}
+                          {new Date(activity.created_at).toLocaleString()}
                         </p>
                       </div>
                     </div>
